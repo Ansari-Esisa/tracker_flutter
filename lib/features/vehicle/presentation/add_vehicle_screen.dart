@@ -19,7 +19,11 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
       debugPrint('Demo Mode: Saving vehicle (bypassing Firestore)');
-      if (mounted) context.pop();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Véhicule ajouté avec succès (Demo Mode)')),
+      );
+      context.pop();
     }
   }
 
