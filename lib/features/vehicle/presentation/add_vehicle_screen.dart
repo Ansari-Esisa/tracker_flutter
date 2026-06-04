@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/di/providers.dart';
-import '../../../shared/models/vehicle.dart';
 
 class AddVehicleScreen extends ConsumerStatefulWidget {
   const AddVehicleScreen({super.key});
@@ -20,15 +18,7 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final vehicle = Vehicle(
-        make: _makeController.text,
-        model: _modelController.text,
-        plateNumber: _plateController.text,
-        year: int.parse(_yearController.text),
-      );
-
-      final service = ref.read(firestoreServiceProvider);
-      await service.addDocument('vehicles', vehicle.toMap());
+      debugPrint('Demo Mode: Saving vehicle (bypassing Firestore)');
       if (mounted) context.pop();
     }
   }

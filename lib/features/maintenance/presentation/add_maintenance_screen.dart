@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/di/providers.dart';
-import '../../../shared/models/maintenance.dart';
 
 class AddMaintenanceScreen extends ConsumerStatefulWidget {
   final String vehicleId;
@@ -22,16 +21,7 @@ class _AddMaintenanceScreenState extends ConsumerState<AddMaintenanceScreen> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate() && _selectedCategoryId != null) {
-      final maintenance = Maintenance(
-        vehicleId: widget.vehicleId,
-        categoryId: _selectedCategoryId!,
-        date: _selectedDate,
-        description: _descriptionController.text,
-        cost: double.parse(_costController.text),
-      );
-
-      final service = ref.read(firestoreServiceProvider);
-      await service.addDocument('maintenances', maintenance.toMap());
+      debugPrint('Demo Mode: Saving maintenance (bypassing Firestore)');
       if (mounted) context.pop();
     }
   }

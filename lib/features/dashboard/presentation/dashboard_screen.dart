@@ -3,19 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../../shared/models/vehicle.dart';
-import '../../../core/di/providers.dart';
+import '../../../shared/models/maintenance.dart';
 
-// Providers for filtered data
-final driverVehiclesProvider = StreamProvider<List<Vehicle>>((ref) {
-  final user = ref.watch(authStateProvider).value;
-  if (user == null) return Stream.value([]);
-  
-  return Stream.fromFuture(ref.watch(vehiclesProvider.future)).asyncExpand((vehicles) {
-    // In a real app, we'd filter by user.uid
-    // For now, returning all vehicles as placeholder logic
-    return Stream.value(vehicles);
-  });
-});
+// Mock Data for Demo
+final mockVehicles = [
+  Vehicle(id: 'v1', make: 'Toyota', model: 'Corolla', plateNumber: '12345|A|1', year: 2020),
+  Vehicle(id: 'v2', make: 'Dacia', model: 'Duster', plateNumber: '67890|B|2', year: 2022),
+];
+
+final mockMaintenances = [
+  Maintenance(id: 'm1', vehicleId: 'v1', categoryId: 'cat1', date: DateTime.now().subtract(const Duration(days: 2)), description: 'Vidange moteur', cost: 150.0),
+  Maintenance(id: 'm2', vehicleId: 'v1', categoryId: 'cat2', date: DateTime.now().subtract(const Duration(days: 10)), description: 'Remplacement filtre', cost: 50.0),
+  Maintenance(id: 'm3', vehicleId: 'v2', categoryId: 'cat1', date: DateTime.now().subtract(const Duration(days: 5)), description: 'Révision générale', cost: 100.0),
+];
+
+// Mocked Providers for Demo
+final driverVehiclesProvider = Provider<List<Vehicle>>((ref) => mockVehicles);
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -29,11 +32,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final vehiclesAsync = ref.watch(driverVehiclesProvider);
+    final vehicles = ref.watch(driverVehiclesProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: const Text('Dashboard (Demo Mode)'),
         actions: [
           IconButton(
             icon: const Icon(Icons.date_range),
@@ -51,29 +54,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ],
       ),
-      body: vehiclesAsync.when(
-        data: (vehicles) {
-          if (vehicles.isEmpty) {
-            return const Center(child: Text('Aucun véhicule trouvé.'));
-          }
-          return RefreshIndicator(
-            onRefresh: () async => ref.refresh(driverVehiclesProvider),
-            child: ListView(
-              padding: const EdgeInsets.all(16.0),
-              children: [
-                _buildDriverVehicles(vehicles),
-                const SizedBox(height: 24),
-                _buildExpenseDistribution(),
-                const SizedBox(height: 24),
-                _buildFuelConsumptionStats(vehicles),
-                const SizedBox(height: 24),
-                _buildMaintenanceHistory(vehicles),
-              ],
-            ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Erreur: $err')),
+      body: RefreshIndicator(
+        onRefresh: () async => {},
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            _buildDriverVehicles(vehicles),
+            const SizedBox(height: 24),
+            _buildExpenseDistribution(),
+            const SizedBox(height: 24),
+            _buildFuelConsumptionStats(vehicles),
+            const SizedBox(height: 24),
+            _buildMaintenanceHistory(vehicles),
+          ],
+        ),
       ),
     );
   }
@@ -124,7 +118,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Text('Dépenses du Mois', style: Theme.of(context).textTheme.titleMedium),
+            Text('Dépenses du Mois (1000 MAD)', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 16),
             SizedBox(
               height: 200,
@@ -135,21 +129,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   sections: [
                     PieChartSectionData(
                       color: Colors.blue,
-                      value: 70,
-                      title: '70%',
+                      value: 700,
+                      title: '700 MAD',
                       radius: 50,
-                      titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      badgeWidget: const Text('Gasoil'),
-                      badgePositionPercentageOffset: 1.3,
+                      titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                      badgeWidget: const Text('Gasoil (70%)'),
+                      badgePositionPercentageOffset: 1.4,
                     ),
                     PieChartSectionData(
                       color: Colors.orange,
-                      value: 30,
-                      title: '30%',
+                      value: 300,
+                      title: '300 MAD',
                       radius: 50,
-                      titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      badgeWidget: const Text('Maintenance'),
-                      badgePositionPercentageOffset: 1.3,
+                      titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                      badgeWidget: const Text('Maint. (30%)'),
+                      badgePositionPercentageOffset: 1.4,
                     ),
                   ],
                 ),
@@ -167,7 +161,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       children: [
         Text('Consommation de Gasoil', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
-        ...vehicles.map((v) => _FuelStatCard(vehicle: v)),
+        ...vehicles.map((v) => Card(
+          child: ListTile(
+            title: Text('${v.make} ${v.model}'),
+            subtitle: const Text('45.0 L | 450.00 MAD'),
+            trailing: const Icon(Icons.local_gas_station, color: Colors.blue),
+          ),
+        )),
       ],
     );
   }
@@ -178,79 +178,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       children: [
         Text('Historique de Maintenance', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
-        ...vehicles.map((v) => _MaintenanceList(vehicle: v, range: _selectedDateRange)),
+        ...vehicles.map((v) {
+          final filtered = mockMaintenances.where((m) => m.vehicleId == v.id).toList();
+          return ExpansionTile(
+            title: Text('Maintenance: ${v.make} ${v.model}'),
+            children: filtered.map((m) => ListTile(
+              leading: const Icon(Icons.build, size: 20),
+              title: Text(m.description),
+              subtitle: Text(DateFormat('dd/MM/yyyy').format(m.date)),
+              trailing: Text('${m.cost.toStringAsFixed(2)} MAD', style: const TextStyle(fontWeight: FontWeight.bold)),
+            )).toList(),
+          );
+        }),
       ],
-    );
-  }
-}
-
-class _FuelStatCard extends ConsumerWidget {
-  final Vehicle vehicle;
-  const _FuelStatCard({required this.vehicle});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final fuelAsync = ref.watch(fuelEntriesProvider(vehicle.id!));
-
-    return fuelAsync.when(
-      data: (entries) {
-        final now = DateTime.now();
-        final monthlyEntries = entries.where((e) => e.date.month == now.month && e.date.year == now.year);
-        
-        double totalLiters = 0;
-        double totalCost = 0;
-        for (var e in monthlyEntries) {
-          totalLiters += e.liters;
-          totalCost += e.totalCost;
-        }
-
-        return Card(
-          child: ListTile(
-            title: Text('${vehicle.make} ${vehicle.model}'),
-            subtitle: Text('${totalLiters.toStringAsFixed(1)} L | ${totalCost.toStringAsFixed(2)} €'),
-            trailing: const Icon(Icons.local_gas_station, color: Colors.blue),
-          ),
-        );
-      },
-      loading: () => const LinearProgressIndicator(),
-      error: (e, _) => Text('Erreur: $e'),
-    );
-  }
-}
-
-class _MaintenanceList extends ConsumerWidget {
-  final Vehicle vehicle;
-  final DateTimeRange? range;
-  const _MaintenanceList({required this.vehicle, this.range});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final maintenanceAsync = ref.watch(maintenanceProvider(vehicle.id!));
-
-    return maintenanceAsync.when(
-      data: (maintenances) {
-        var filtered = maintenances;
-        if (range != null) {
-          filtered = maintenances.where((m) => 
-            m.date.isAfter(range!.start.subtract(const Duration(days: 1))) && 
-            m.date.isBefore(range!.end.add(const Duration(days: 1)))
-          ).toList();
-        }
-
-        if (filtered.isEmpty) return const SizedBox.shrink();
-
-        return ExpansionTile(
-          title: Text('Maintenance: ${vehicle.make} ${vehicle.model}'),
-          children: filtered.map((m) => ListTile(
-            leading: const Icon(Icons.build, size: 20),
-            title: Text(m.description),
-            subtitle: Text(DateFormat('dd/MM/yyyy').format(m.date)),
-            trailing: Text('${m.cost.toStringAsFixed(2)} €', style: const TextStyle(fontWeight: FontWeight.bold)),
-          )).toList(),
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (e, _) => const SizedBox.shrink(),
     );
   }
 }

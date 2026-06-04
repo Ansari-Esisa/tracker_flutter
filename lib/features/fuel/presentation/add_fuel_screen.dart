@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../core/di/providers.dart';
-import '../../../shared/models/fuel_entry.dart';
 
 class AddFuelScreen extends ConsumerStatefulWidget {
   final String vehicleId;
@@ -22,16 +20,9 @@ class _AddFuelScreenState extends ConsumerState<AddFuelScreen> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final entry = FuelEntry(
-        vehicleId: widget.vehicleId,
-        date: _selectedDate,
-        liters: double.parse(_litersController.text),
-        totalCost: double.parse(_totalCostController.text),
-        mileage: double.parse(_mileageController.text),
-      );
-
-      final service = ref.read(firestoreServiceProvider);
-      await service.addDocument('fuelEntries', entry.toMap());
+      debugPrint('Demo Mode: Saving fuel entry (bypassing Firestore)');
+      // In a real demo, we might add to a local mock list, 
+      // but for now just pop back to simulate success.
       if (mounted) context.pop();
     }
   }

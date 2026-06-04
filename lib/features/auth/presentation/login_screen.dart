@@ -16,17 +16,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isLogin = true;
 
   Future<void> _submit() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // Demo Mode bypass
+    if (email == "demo@test.com" && password == "123456") {
+      debugPrint('Demo Mode activated');
+      if (!mounted) return;
+      context.go('/dashboard');
+      return;
+    }
+
     final auth = ref.read(firebaseAuthProvider);
     try {
       if (_isLogin) {
         await auth.signInWithEmailAndPassword(
-          email: _emailController.text,
-          password: _passwordController.text,
+          email: email,
+          password: password,
         );
       } else {
         await auth.createUserWithEmailAndPassword(
-          email: _emailController.text,
-          password: _passwordController.text,
+          email: email,
+          password: password,
         );
       }
       if (!mounted) return;
