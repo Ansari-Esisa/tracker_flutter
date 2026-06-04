@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore_service.dart';
+import '../services/dio_client.dart';
 import '../../shared/models/vehicle.dart';
 import '../../shared/models/fuel_entry.dart';
 import '../../shared/models/maintenance.dart';
@@ -10,6 +11,7 @@ import '../../shared/models/category_maintenance.dart';
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
 final firestoreProvider = Provider<FirebaseFirestore>((ref) => FirebaseFirestore.instance);
 final firestoreServiceProvider = Provider<FirestoreService>((ref) => FirestoreService());
+final dioClientProvider = Provider<DioClient>((ref) => DioClient());
 
 final authStateProvider = StreamProvider<User?>((ref) {
   return ref.watch(firebaseAuthProvider).authStateChanges();
